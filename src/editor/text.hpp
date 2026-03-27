@@ -7,7 +7,13 @@
 class TextBuffer
 {
     public:
-        TextBuffer(std::string);
+        TextBuffer(std::string init);
+        
+        Location globalToLoc(int offset);
+        int locToGlobal(Location initLoc);
+        
+        
+        // GETTERS
         
         size_t pieceCount() const;
         Piece piece(size_t index) const;

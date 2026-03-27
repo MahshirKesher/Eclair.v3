@@ -21,9 +21,11 @@ class Renderer
         void fillFrame();
         void statusBar();
         void blank();
+        void cursor();
         
         std::string row(size_t index);
         int rowSize(size_t index);
+        Location rowStart(size_t index);
         
     private:
         Terminal& terminal_;
@@ -32,5 +34,6 @@ class Renderer
         Cursor& cursor_;
         FileHandler& file_;
         
-        std::vector<std::string> displayBuffer_;
+        std::vector<Location> rowStarts;
+        std::vector<std::string> screenRows;
 };

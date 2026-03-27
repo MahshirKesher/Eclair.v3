@@ -1,10 +1,34 @@
 #include "text.hpp"
 
-TextBuffer::TextBuffer(std::string initContent)
+TextBuffer::TextBuffer(std::string init)
 {
-    original_ = initContent;
+    original_ = init;
     Piece initPiece = {0, static_cast<int>(original_.size()), ORIGINAL};
     pieces.push_back(initPiece);
+}
+
+Location TextBuffer::globalToLoc(int offset)
+{
+    int pieceCount_ = pieceCount();
+    for(int i = 0; i < pieceCount_; i++)
+    {
+        Piece currentPiece = piece(i);
+        if(offset < currentPiece.length) return {i, offset};
+        else offset -= currentPiece.length;
+    } //Leaving the loop without returning means we hit the end of file.
+    Location eof = {pieceCount_ - 1, piece(pieceCount_ - 1).length};
+    return eof;
+}
+
+int TextBuffer::locToGlobal(Location initLoc)
+{
+    int offset = 0;
+    for(int i = 0; i < initLoc.pieceIndex; i++)
+    {
+        Piece currentPiece = piece(i);
+        offset += currentPiece.length;
+    }
+    return offset + initLoc.inPieceOffset; 
 }
 
 const std::string& TextBuffer::giveBuffer(Piece& piece) const

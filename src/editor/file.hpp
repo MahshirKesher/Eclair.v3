@@ -1,5 +1,6 @@
 #pragma once
 
+#include "sharedTypes.hpp"
 #include <string>
 
 class FileHandler

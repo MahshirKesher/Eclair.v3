@@ -7,12 +7,6 @@ Cursor::Cursor()
     preferredColumn_ = 0;
 }
 
-void Cursor::moveTo(int row, int col)
-{
-    row_ = row;
-    col_ = col;
-}
-
 void Cursor::setRow(int row)
 {
     row_ = row;

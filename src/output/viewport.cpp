@@ -22,13 +22,10 @@ void Viewport::setStart(Location newStart)
         viewStart_ = newStart;
 }
 
-void Viewport::setStart(int pieceIndex, int offset)
+void Viewport::setEnd(Location newEnd)
 {
-    if(pieceIndex >= 0 && offset >= 0)
-    {
-        viewStart_.pieceIndex = pieceIndex;
-        viewStart_.inPieceOffset = offset;
-    }
+    if(newEnd.pieceIndex >= 0 && newEnd.inPieceOffset >= 0)
+        viewEnd_ = newEnd;
 }
 
 void Viewport::setRowOffset(int newOffset)
@@ -40,3 +37,4 @@ int Viewport::rows() const { return rows_; }
 int Viewport::cols() const { return cols_; }
 int Viewport::rowOffset() const { return rowOffset_; }
 Location Viewport::viewStart() const { return viewStart_; }
+Location Viewport::viewEnd() const { return viewEnd_; }

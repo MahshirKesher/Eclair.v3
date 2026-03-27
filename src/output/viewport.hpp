@@ -9,7 +9,7 @@ class Viewport
     
         void setWindowSize(WinSize newWinSize);
         void setStart(Location newStart);
-        void setStart(int pieceIndex, int offset);
+        void setEnd(Location newStart);
         
         int rows() const;
         int cols() const;
@@ -18,10 +18,12 @@ class Viewport
         void setRowOffset(int newOffset);
         
         Location viewStart() const;
+        Location viewEnd() const;
         
     private:
         int rows_, cols_;
         int rowOffset_;
         
         Location viewStart_;
+        Location viewEnd_;
 };

@@ -1,12 +1,12 @@
 #pragma once
 
+#include "keys.hpp"
+
 class Cursor
 {
     public:
         Cursor();
     
-        void moveTo(int row, int col);
-        
         int row() const;
         int col() const;
         int prefCol() const;

@@ -27,11 +27,7 @@ void Renderer::updateScreen()
     terminal_.write("\x1b[?25l");
     fillFrame();
     statusBar();
-    std::string frame = "\x1b[" 
-                      + std::to_string(cursor_.row() + 1) 
-                      + ";" 
-                      + std::to_string(cursor_.col() + 1) 
-                      + "H";
+    cursor();
     terminal_.write("\x1b[?25h");
 }
 
@@ -44,9 +40,10 @@ void Renderer::blank()
         frame += "\x1b[K";
         frame += "~\n\r";
     }
+    frame += "~";
     std::string message = "Empty here. Start something with Eclair!\n\r";
     int padding = static_cast<int>((view_.cols() / 2) - (message.size() / 2));
-    while(padding--) frame += " ";
+    if(padding > 0) frame.append(padding, ' ');
     frame += message;
     
     for(int i = (screenRows / 3) + 1; i < screenRows; i++)
@@ -64,48 +61,43 @@ void Renderer::fillFrame()
         blank();
         return;
     }
-
     Location start = view_.viewStart();
-
-    displayBuffer_.clear();
-    size_t pieceCount = text_.pieceCount();
-    int rowCount = 0;
-    int screenRows = view_.rows();
-    Piece currentPiece;
-    std::string currentRow;
-    std::string frame;
-    
-    frame += "\x1b[H";
-    frame += "\x1b[K";
-    for(size_t pieceIndex = start.pieceIndex; pieceIndex < pieceCount; pieceIndex++)
+    std::string row; std::string frame;
+    int rowCount = view_.rowOffset();
+    int totalPieces = text_.pieceCount();
+    int frameEnd = view_.rowOffset() + view_.rows() - 2;
+    frame += "\x1b[H\x1b[K";
+    screenRows.clear();
+    rowStarts.clear();
+    for(int i = start.pieceIndex; i < totalPieces; i++)
     {
-        currentPiece = text_.piece(pieceIndex);
+        Piece currentPiece = text_.piece(i);
         const std::string& buffer = text_.giveBuffer(currentPiece);
-        for(int i = start.inPieceOffset; i < currentPiece.length; i++)
+        for(int j = start.inPieceOffset; j < currentPiece.length; j++)
         {
-            frame += buffer.at(currentPiece.start + i);
-            currentRow += frame.back();
+            frame += buffer.at(currentPiece.start + j);
+            row += frame.back();
             if(frame.back() == '\n') 
             {
-                displayBuffer_.push_back(currentRow);
-                currentRow.clear();
+                rowCount++;
+                screenRows.push_back(row);
+                row.clear();
                 frame += '\r';
                 frame += "\x1b[K";
-                rowCount++;
+            
+                if(j < currentPiece.length - 1) rowStarts.push_back({i, j + 1});
+                else rowStarts.push_back({i + 1, 0});
             }
-            if(rowCount == screenRows - 2) 
+            if(rowCount == frameEnd) 
             {
                 terminal_.write(frame);
-                break;
+                return;
             }
         }
+        start.inPieceOffset = 0;
     }
-    while(rowCount < screenRows - 2)
-    {
-        frame += "\x1b[K";
-        frame += "~\n\r";
-        rowCount++;
-    }
+    screenRows.push_back(row);
+    while(rowCount++ < frameEnd) frame += "\x1b[K~\n\r";
     terminal_.write(frame);
 }
 
@@ -119,28 +111,49 @@ void Renderer::statusBar()
     std::string rightBar = std::format("{}/{}", cursor_.row() + 1, file_.filerows());
     if(bar.size() >= screenCols - rightBar.size())
     {
-        bar.resize(screenCols);
-        terminal_.write(bar);
+        size_t space = screenCols - bar.size();
+        bar.append(space, ' ');
+        command += bar;
+        command += "\x1b[m";
+        terminal_.write(command);
         return;
     }
     else
     {
-        for(size_t i = bar.size(); i < screenCols - rightBar.size(); i++) bar += " ";
+        size_t space = screenCols - rightBar.size() - bar.size();
+        bar.append(space, ' ');
         bar += rightBar;
     }
+    command += bar;
+    command += "\x1b[m";
     terminal_.write(command);
-    terminal_.write(bar);
-    terminal_.write("\x1b[m");
+}
+
+void Renderer::cursor()
+{
+    std::string buffer = 
+        "\x1b[" 
+        + std::to_string((cursor_.row() - view_.rowOffset()) + 1) 
+        + ";" 
+        + std::to_string(cursor_.col() + 1) 
+        + "H";
+    terminal_.write(buffer);
 }
 
 std::string Renderer::row(size_t index)
 {
-    if(index >= displayBuffer_.size()) return "";
-    return displayBuffer_.at(index);
+    if(index >= screenRows.size()) return "";
+    return screenRows.at(index);
 }
 
 int Renderer::rowSize(size_t index)
 {
-    if(index >= displayBuffer_.size()) return 0;
-    else return displayBuffer_.at(index).size() - 1;
+    if(index >= screenRows.size()) return 0;
+    else return screenRows.at(index).size() - 1;
+}
+
+Location Renderer::rowStart(size_t index)
+{
+    if(index >= rowStarts.size()) return rowStarts.at(rowStarts.size() - 1);
+    else return rowStarts.at(index);
 }
