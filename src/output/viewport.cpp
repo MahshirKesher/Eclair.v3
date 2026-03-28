@@ -8,6 +8,7 @@ Viewport::Viewport(WinSize initSize)
     rowOffset_ = 0;
     
     viewStart_ = {0, 0};
+    viewEnd_ = {0, 0};
 }
 
 void Viewport::setWindowSize(WinSize newWinsize)

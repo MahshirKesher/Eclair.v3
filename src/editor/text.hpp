@@ -12,10 +12,11 @@ class TextBuffer
         Location globalToLoc(int offset);
         int locToGlobal(Location initLoc);
         
+        Location findPreviousRowStart(Location initLoc);
         
         // GETTERS
         
-        size_t pieceCount() const;
+        int pieceCount() const;
         Piece piece(size_t index) const;
         
         const std::string original() const;

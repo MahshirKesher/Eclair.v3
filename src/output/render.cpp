@@ -64,12 +64,12 @@ void Renderer::fillFrame()
     Location start = view_.viewStart();
     std::string row; std::string frame;
     int rowCount = view_.rowOffset();
-    int totalPieces = text_.pieceCount();
+    int pieceCount = text_.pieceCount();
     int frameEnd = view_.rowOffset() + view_.rows() - 2;
     frame += "\x1b[H\x1b[K";
     screenRows.clear();
     rowStarts.clear();
-    for(int i = start.pieceIndex; i < totalPieces; i++)
+    for(int i = start.pieceIndex; i < pieceCount; i++)
     {
         Piece currentPiece = text_.piece(i);
         const std::string& buffer = text_.giveBuffer(currentPiece);
@@ -86,10 +86,14 @@ void Renderer::fillFrame()
                 frame += "\x1b[K";
             
                 if(j < currentPiece.length - 1) rowStarts.push_back({i, j + 1});
-                else rowStarts.push_back({i + 1, 0});
+                else if(i < pieceCount - 1) rowStarts.push_back({i + 1, 0});
+                else rowStarts.push_back({i, j});
             }
             if(rowCount == frameEnd) 
             {
+                if(j < currentPiece.length - 1) view_.setEnd({i, j + 1});
+                else if(i < pieceCount - 1) view_.setEnd({i + 1, 0});
+                else view_.setEnd({i, j});
                 terminal_.write(frame);
                 return;
             }

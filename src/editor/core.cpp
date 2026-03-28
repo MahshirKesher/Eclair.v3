@@ -31,9 +31,9 @@ Status EditorCore::handleMovement(Movement input)
             if(row > 0) cursor_.setRow(--row);
             if(row <= rowOffset + 2)
             {
-                view_.setStart({0, 0});
+                view_.setStart(text_.findPreviousRowStart(view_.viewStart()));
                 render_.updateScreen();
-                view_.setRowOffset(0);
+                view_.setRowOffset(--rowOffset);
             }
             break;
         case DOWN:
@@ -65,16 +65,43 @@ Status EditorCore::handleMovement(Movement input)
             }
             break;
         case PAGE_UP:
-            
+            for(int i = 0; i < rows - 2; i++) view_.setStart(text_.findPreviousRowStart(view_.viewStart()));
+            render_.updateScreen();
+            if(row > 0 + rows - 2)
+            {
+                cursor_.setRow(row - rows + 2);
+                cursor_.setCol(std::min(prefCol, render_.rowSize(row)));
+                view_.setRowOffset(rowOffset - rows + 2);
+            }
+            else 
+            {
+                view_.setRowOffset(0);
+                cursor_.setRow(0);
+                cursor_.setCol(0);
+            }
             break;
         case PAGE_DOWN:
-            
+            view_.setStart(view_.viewEnd());
+            render_.updateScreen();
+            if(row < file_.filerows() - rows + 2)
+            {
+                cursor_.setRow(row + rows - 2);
+                cursor_.setCol(std::min(prefCol, render_.rowSize(row)));
+                view_.setRowOffset(rowOffset + rows - 2);
+            }
+            else
+            {
+                cursor_.setRow(file_.filerows());
+                cursor_.setCol(std::min(prefCol, render_.rowSize(row)));
+            }
             break;
         case HOME:
-            
+            cursor_.setCol(0);
+            cursor_.setPrefCol(0);
             break;
         case END:
-            
+            cursor_.setCol(render_.rowSize(row));
+            cursor_.setPrefCol(cursor_.col());
             break;
     }
     render_.statusBar();
