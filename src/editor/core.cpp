@@ -28,79 +28,85 @@ Status EditorCore::handleMovement(Movement input)
     switch(input)
     {
         case UP:
-            if(row > 0) cursor_.setRow(--row);
-            if(row <= rowOffset + 2)
+            if(row > 0) 
+            {
+                cursor_.setRow(--row);
+                cursor_.setCol(std::min(prefCol, render_.rowSize(row - rowOffset)));
+            }
+            if(row <= rowOffset + 3 && row >= 3)
             {
                 view_.setStart(text_.findPreviousRowStart(view_.viewStart()));
-                render_.updateScreen();
                 view_.setRowOffset(--rowOffset);
+                render_.updateScreen();
             }
             break;
         case DOWN:
-            if(row < file_.filerows()) cursor_.setRow(++row);
-            if(row >= rowOffset + rows - 3)
+            if(row < file_.filerows()) 
+            {
+                cursor_.setRow(++row);
+                cursor_.setCol(std::min(prefCol, render_.rowSize(row - rowOffset)));
+            }
+            if(row >= rowOffset + rows - 3 && row <= file_.filerows())
             {
                 view_.setStart(render_.rowStart(0));
                 view_.setRowOffset(++rowOffset);
                 render_.updateScreen();
-                cursor_.setCol(std::min(prefCol, render_.rowSize(row)));
             }
             break;
         case LEFT:
             if(col > 0) cursor_.setCol(--col);
-            else
+            else if(row > 0)
             {
                 cursor_.setRow(--row);
-                cursor_.setCol(render_.rowSize(row));
+                cursor_.setCol(render_.rowSize(row - rowOffset));
+                if(row <= rowOffset + 3 && row >= 3)
+                {
+                    view_.setStart(text_.findPreviousRowStart(view_.viewStart()));
+                    view_.setRowOffset(--rowOffset);
+                    render_.updateScreen();
+                }
             }
             cursor_.setPrefCol(cursor_.col());
             break;
         case RIGHT:
-            if(col < render_.rowSize(row)) cursor_.setCol(++col);
-            else
+            if(col < render_.rowSize(row - rowOffset)) cursor_.setCol(++col);
+            else if(row < file_.filerows())
             {
-                row++;
+                cursor_.setRow(++row);
                 cursor_.setCol(0);
-                cursor_.setPrefCol(cursor_.col());
+                if(row >= rowOffset + rows - 3 && row <= file_.filerows())
+                {
+                    view_.setStart(render_.rowStart(0));
+                    view_.setRowOffset(++rowOffset);
+                    render_.updateScreen();
+                }
             }
+            cursor_.setPrefCol(cursor_.col());
             break;
         case PAGE_UP:
-            for(int i = 0; i < rows - 2; i++) view_.setStart(text_.findPreviousRowStart(view_.viewStart()));
+            for(int i = 0; i < rows - 2; i++) 
+            {
+                view_.setStart(text_.findPreviousRowStart(view_.viewStart()));
+                if(view_.viewStart().sameAs({0, 0})) break;
+            }
+            view_.setRowOffset(std::max(0, rowOffset - rows + 2));
             render_.updateScreen();
-            if(row > 0 + rows - 2)
-            {
-                cursor_.setRow(row - rows + 2);
-                cursor_.setCol(std::min(prefCol, render_.rowSize(row)));
-                view_.setRowOffset(rowOffset - rows + 2);
-            }
-            else 
-            {
-                view_.setRowOffset(0);
-                cursor_.setRow(0);
-                cursor_.setCol(0);
-            }
+            cursor_.setRow(std::max(0, row - rows + 2));
+            cursor_.setCol(std::min(prefCol, render_.rowSize(row - rowOffset)));
             break;
         case PAGE_DOWN:
             view_.setStart(view_.viewEnd());
+            view_.setRowOffset(std::min(file_.filerows() - 2, rowOffset + rows - 2));
             render_.updateScreen();
-            if(row < file_.filerows() - rows + 2)
-            {
-                cursor_.setRow(row + rows - 2);
-                cursor_.setCol(std::min(prefCol, render_.rowSize(row)));
-                view_.setRowOffset(rowOffset + rows - 2);
-            }
-            else
-            {
-                cursor_.setRow(file_.filerows());
-                cursor_.setCol(std::min(prefCol, render_.rowSize(row)));
-            }
+            cursor_.setRow(std::min(file_.filerows(), row + rows - 2));
+            cursor_.setCol(std::min(prefCol, render_.rowSize(row - rowOffset)));
             break;
         case HOME:
             cursor_.setCol(0);
             cursor_.setPrefCol(0);
             break;
         case END:
-            cursor_.setCol(render_.rowSize(row));
+            cursor_.setCol(render_.rowSize(row - rowOffset));
             cursor_.setPrefCol(cursor_.col());
             break;
     }

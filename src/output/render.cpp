@@ -69,11 +69,13 @@ void Renderer::fillFrame()
     frame += "\x1b[H\x1b[K";
     screenRows.clear();
     rowStarts.clear();
-    for(int i = start.pieceIndex; i < pieceCount; i++)
+    int i, j;
+    Piece currentPiece;
+    for(i = start.pieceIndex; i < pieceCount; i++)
     {
-        Piece currentPiece = text_.piece(i);
+        currentPiece = text_.piece(i);
         const std::string& buffer = text_.giveBuffer(currentPiece);
-        for(int j = start.inPieceOffset; j < currentPiece.length; j++)
+        for(j = start.inPieceOffset; j < currentPiece.length; j++)
         {
             frame += buffer.at(currentPiece.start + j);
             row += frame.back();
@@ -100,6 +102,9 @@ void Renderer::fillFrame()
         }
         start.inPieceOffset = 0;
     }
+    if(j < currentPiece.length - 1) rowStarts.push_back({i, j + 1});
+    else if(i < pieceCount - 1) rowStarts.push_back({i + 1, 0});
+    else rowStarts.push_back({i, j});
     screenRows.push_back(row);
     while(rowCount++ < frameEnd) frame += "\x1b[K~\n\r";
     terminal_.write(frame);

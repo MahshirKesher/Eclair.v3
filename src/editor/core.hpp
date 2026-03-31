@@ -20,9 +20,6 @@ class EditorCore
         Status processInput(int input);
         Status handleMovement(Movement input);
         
-        Location findNextStart(Location initLoc);
-        Location findPreviousStart(Location initLoc);
-        
     private:
         Terminal terminal_;
         InputHandler input_;
