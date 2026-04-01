@@ -18,6 +18,16 @@ EditorCore::EditorCore(std::string filename)
     render_.updateScreen();
     
     cursorOffset = 0;
+    
+    std::string test = "\x1b[" + std::to_string(view_.rows()) + ";1H\x1b[K";
+    test += std::to_string(cursorOffset);
+    terminal_.write(test);
+}
+
+void EditorCore::updateCursorOffset()
+{
+    int cursorRowStart = text_.locToGlobal(render_.rowStart(cursor_.row() - view_.rowOffset()));
+    cursorOffset = cursorRowStart + cursor_.col();
 }
 
 Status EditorCore::handleMovement(Movement input)
@@ -111,7 +121,37 @@ Status EditorCore::handleMovement(Movement input)
             break;
     }
     render_.statusBar();
+    updateCursorOffset();
+    
+    Location currentLoc = text_.globalToLoc(cursorOffset);
+    Piece currentPiece = text_.piece(currentLoc.pieceIndex);
+    const std::string& buffer = text_.giveBuffer(currentPiece);
+    
+    std::string test = "\x1b[" + std::to_string(view_.rows()) + ";1H\x1b[K";
+    test += std::to_string(currentLoc.pieceIndex) + "." + std::to_string(currentLoc.inPieceOffset);
+    test += " " + std::to_string(cursorOffset);
+    test += " ";
+    char currentChar = buffer.at(currentPiece.start + currentLoc.inPieceOffset);
+    if (currentChar == '\n') test += "\\n";
+    else test += currentChar;
+    terminal_.write(test);
     render_.cursor();
+    text_.setContInsert(false);
+    
+    return Success;
+}
+
+Status EditorCore::handleEdit(int input)
+{
+    text_.edit(input, text_.globalToLoc(cursorOffset));
+    if(input == '\n')
+    {
+        cursor_.setRow(cursor_.row() + 1);
+        cursor_.setCol(0);
+    }
+    else if(input != '\b') cursor_.setCol(cursor_.col() + 1);
+    cursorOffset++;
+    render_.updateScreen();
     return Success;
 }
 
@@ -132,7 +172,7 @@ Status EditorCore::processInput(int input)
         case END:
             return handleMovement(static_cast<Movement>(input));
         default:
-            return Success;
+            return handleEdit(input);
     }
 }
 

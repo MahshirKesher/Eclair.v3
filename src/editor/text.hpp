@@ -14,6 +14,14 @@ class TextBuffer
         
         Location findPreviousRowStart(Location initLoc);
         
+        Piece newPiece();
+        Status dividePiece(Location insertLoc);
+        void edit(int input, Location insertionLoc);
+        
+        // SETTERS
+        
+        void setContInsert(bool state);
+        
         // GETTERS
         
         int pieceCount() const;
@@ -24,9 +32,13 @@ class TextBuffer
         
         const std::string& giveBuffer(Piece& piece) const;
         
+        bool contInsert() const;
+        
     private:
         std::string original_;
         std::string appended_;
+        
+        bool contInsert_;
         
         std::vector<Piece> pieces;
 };

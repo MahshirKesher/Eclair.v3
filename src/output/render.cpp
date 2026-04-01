@@ -71,6 +71,7 @@ void Renderer::fillFrame()
     rowStarts.clear();
     int i, j;
     Piece currentPiece;
+    rowStarts.push_back(view_.viewStart());
     for(i = start.pieceIndex; i < pieceCount; i++)
     {
         currentPiece = text_.piece(i);

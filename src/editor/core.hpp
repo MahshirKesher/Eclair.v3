@@ -19,6 +19,9 @@ class EditorCore
         
         Status processInput(int input);
         Status handleMovement(Movement input);
+        Status handleEdit(int input);
+        
+        void updateCursorOffset();
         
     private:
         Terminal terminal_;

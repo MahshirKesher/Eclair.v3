@@ -10,7 +10,7 @@ FileHandler::FileHandler()
 
 std::string FileHandler::open(std::string filename)
 {
-    if(filename == "") return " ";
+    if(filename == "") return "";
     filename_ = filename;
 
     std::fstream file(filename, std::ios::in | std::ios::out | std::ios::binary);

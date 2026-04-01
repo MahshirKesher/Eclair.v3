@@ -12,7 +12,9 @@ enum Status
     NoInput = 21,
     SignalInterrupt = 22,
     WritingError = 30,
-    TextBufferOverflow = 40
+    TextBufferOverflow = 40,
+    StartOfPiece = 50,
+    EndOfFile = 51
 };
 
 enum Interrupt
