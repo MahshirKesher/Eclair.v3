@@ -9,6 +9,7 @@ TextBuffer::TextBuffer(std::string init)
         pieces.push_back(initPiece);
     }
 }
+
 Location TextBuffer::globalToLoc(int offset)
 {
     int pieceCount_ = pieceCount();

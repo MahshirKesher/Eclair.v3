@@ -4,7 +4,7 @@
 
 enum Movement
 {
-    UP = 65,
+    UP = 650,
     DOWN,
     RIGHT,
     LEFT,
@@ -18,5 +18,6 @@ enum Movement
 
 enum Command
 {
-    QUIT
+    QUIT = 300,
+    NEWLINE
 };

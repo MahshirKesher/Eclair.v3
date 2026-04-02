@@ -20,6 +20,10 @@ int InputHandler::define(int input)
                 return defineSequence();
             else return input;
             
+        case 13:
+        case 10:
+            return '\n';
+            
         default:
             return input;
     }

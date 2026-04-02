@@ -58,7 +58,7 @@ Status EditorCore::handleMovement(Movement input)
             }
             if(row >= rowOffset + rows - 3 && row <= file_.filerows())
             {
-                view_.setStart(render_.rowStart(0));
+                view_.setStart(render_.rowStart(1));
                 view_.setRowOffset(++rowOffset);
                 render_.updateScreen();
             }
@@ -144,12 +144,13 @@ Status EditorCore::handleMovement(Movement input)
 Status EditorCore::handleEdit(int input)
 {
     text_.edit(input, text_.globalToLoc(cursorOffset));
-    if(input == '\n')
+    if(input == '\n') 
     {
         cursor_.setRow(cursor_.row() + 1);
         cursor_.setCol(0);
     }
-    else if(input != '\b') cursor_.setCol(cursor_.col() + 1);
+    else cursor_.setCol(cursor_.col() + 1);
+    cursor_.setPrefCol(cursor_.col());
     cursorOffset++;
     render_.updateScreen();
     return Success;
