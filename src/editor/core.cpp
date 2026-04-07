@@ -134,6 +134,7 @@ Status EditorCore::handleMovement(Movement input)
     char currentChar = buffer.at(currentPiece.start + currentLoc.inPieceOffset);
     if (currentChar == '\n') test += "\\n";
     else test += currentChar;
+    test += " " + std::to_string(text_.totalSize());
     terminal_.write(test);
     render_.cursor();
     text_.setContInsert(false);
@@ -143,15 +144,44 @@ Status EditorCore::handleMovement(Movement input)
 
 Status EditorCore::handleEdit(int input)
 {
-    text_.edit(input, text_.globalToLoc(cursorOffset));
-    if(input == '\n') 
+    if(input == DELETE_KEY) 
     {
-        cursor_.setRow(cursor_.row() + 1);
-        cursor_.setCol(0);
+        if(cursorOffset >= text_.totalSize()) return NoDeletionExecuted;
+        text_.deletion(text_.globalToLoc(cursorOffset));
     }
-    else cursor_.setCol(cursor_.col() + 1);
-    cursor_.setPrefCol(cursor_.col());
-    cursorOffset++;
+    else if(input == BACKSPACE_KEY) 
+    {
+        if(cursorOffset == 0) return NoDeletionExecuted;
+        Status edit = text_.deletion(text_.globalToLoc(--cursorOffset));
+        if(edit == NewlineDeleted) 
+        {
+            cursor_.setRow(cursor_.row() - 1);
+            cursor_.setCol(render_.rowSize(cursor_.row() - view_.rowOffset()));
+        }
+        else cursor_.setCol(cursor_.col() - 1);
+    }
+    else if(input == '\t')
+    {
+        int charsToTab = TAB_SIZE - (cursor_.col() % TAB_SIZE);
+        for(int i = 0; i < charsToTab; i++)
+        {
+            text_.edit(' ', text_.globalToLoc(cursorOffset));
+            cursorOffset++;
+            cursor_.setCol(cursor_.col() + 1);
+        }
+    }
+    else
+    {
+        text_.edit(input, text_.globalToLoc(cursorOffset));
+        if(input == '\n') 
+        {
+            cursor_.setRow(cursor_.row() + 1);
+            cursor_.setCol(0);
+        }
+        else cursor_.setCol(cursor_.col() + 1);
+        cursor_.setPrefCol(cursor_.col());
+        cursorOffset++;
+    }
     render_.updateScreen();
     return Success;
 }
@@ -172,6 +202,8 @@ Status EditorCore::processInput(int input)
         case HOME:
         case END:
             return handleMovement(static_cast<Movement>(input));
+        case DELETE_KEY:
+        case BACKSPACE_KEY:
         default:
             return handleEdit(input);
     }

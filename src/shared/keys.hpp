@@ -2,6 +2,12 @@
 
 #define CTRL_(x) ((x) & 0x1F)
 
+enum Editing
+{
+    BACKSPACE_KEY = 127,
+    DELETE_KEY = 400,
+};
+
 enum Movement
 {
     UP = 650,
@@ -19,5 +25,5 @@ enum Movement
 enum Command
 {
     QUIT = 300,
-    NEWLINE
+    SAVE
 };

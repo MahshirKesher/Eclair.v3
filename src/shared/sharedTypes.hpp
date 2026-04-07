@@ -13,8 +13,8 @@ enum Status
     SignalInterrupt = 22,
     WritingError = 30,
     TextBufferOverflow = 40,
-    StartOfPiece = 50,
-    EndOfFile = 51
+    NewlineDeleted = 50,
+    NoDeletionExecuted
 };
 
 enum Interrupt

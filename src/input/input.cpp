@@ -14,16 +14,15 @@ int InputHandler::define(int input)
     {
         case CTRL_('q'):
             return QUIT;
-            
         case '\x1b':
             if(terminal_.read(&input) == Success && input == '[') 
                 return defineSequence();
-            else return input;
-            
+            else return '\x1b';
         case 13:
         case 10:
             return '\n';
-            
+        case 127:
+            return BACKSPACE_KEY;
         default:
             return input;
     }
@@ -58,6 +57,8 @@ int InputHandler::defineSequence()
         case '7':
         case 'H':
             return HOME;
+        case '3':
+            return DELETE_KEY;
         case '4':
         case '8':
         case 'F':

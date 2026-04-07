@@ -10,6 +10,8 @@
 
 #include <string>
 
+#define TAB_SIZE 2
+
 class EditorCore
 {
     public:

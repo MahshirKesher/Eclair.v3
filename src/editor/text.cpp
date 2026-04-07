@@ -7,7 +7,9 @@ TextBuffer::TextBuffer(std::string init)
         original_ = init;
         Piece initPiece = {0, static_cast<int>(original_.size()), ORIGINAL};
         pieces.push_back(initPiece);
+        totalSize_ = pieces.at(0).length;
     }
+    else totalSize_ = 0;
 }
 
 Location TextBuffer::globalToLoc(int offset)
@@ -70,19 +72,50 @@ Piece TextBuffer::newPiece()
     return middlePart;
 }
 
-Status TextBuffer::dividePiece(Location insertLoc)
+EditStatus TextBuffer::dividePiece(Location insertLoc, Purpose usedFor)
 {
     Piece currentPiece = piece(insertLoc.pieceIndex);
     if(insertLoc.inPieceOffset == 0) return StartOfPiece;
+    if(usedFor == DELETION && insertLoc.inPieceOffset == currentPiece.length - 1) return EndOfPiece;
     if((insertLoc.pieceIndex == pieceCount() - 1 && insertLoc.inPieceOffset == currentPiece.length) || pieces.size() == 0) return EndOfFile;
     
     Piece leftPart = {currentPiece.start, insertLoc.inPieceOffset, currentPiece.source};
-    Piece middlePart = newPiece();
     Piece rightPart = {currentPiece.start + insertLoc.inPieceOffset, currentPiece.length - insertLoc.inPieceOffset, currentPiece.source};
     
     pieces.at(insertLoc.pieceIndex) = leftPart;
-    pieces.insert(pieces.begin() + insertLoc.pieceIndex + 1, middlePart);
-    pieces.insert(pieces.begin() + insertLoc.pieceIndex + 2, rightPart);
+    pieces.insert(pieces.begin() + insertLoc.pieceIndex + 1, rightPart);
+    return MidPiece;
+}
+
+Status TextBuffer::deletion(Location insertLoc)
+{
+    Piece currentPiece = piece(insertLoc.pieceIndex);
+    const std::string& buffer = giveBuffer(currentPiece);
+    char deletedChar = buffer.at(currentPiece.start + insertLoc.inPieceOffset);
+    
+    EditStatus status = dividePiece(insertLoc, DELETION);
+    switch(status)
+    {
+        case StartOfPiece:
+            currentPiece.start++;
+            currentPiece.length--;
+            break;
+        case MidPiece:
+            currentPiece = piece(++insertLoc.pieceIndex);
+            currentPiece.start++;
+            currentPiece.length--;
+            break;
+        case EndOfPiece:
+        case EndOfFile:
+            currentPiece.length--;
+            break;
+    }
+    totalSize_--;
+    setContInsert(false);
+    if(currentPiece.length == 0) 
+        pieces.erase(pieces.begin() + insertLoc.pieceIndex);
+    else pieces.at(insertLoc.pieceIndex) = currentPiece;
+    if(deletedChar == '\n') return NewlineDeleted;
     return Success;
 }
 
@@ -96,11 +129,12 @@ void TextBuffer::edit(int input, Location insertLoc)
         return;
     }
     
-    Status editStatus = dividePiece(insertLoc);
-    
+    EditStatus editStatus = dividePiece(insertLoc, INSERTION);
     if(editStatus == StartOfPiece) pieces.insert(pieces.begin() + insertLoc.pieceIndex, newPiece());
     else if(editStatus == EndOfFile) pieces.push_back(newPiece());
+    else pieces.insert(pieces.begin() + insertLoc.pieceIndex + 1, newPiece());
     setContInsert(true);
+    totalSize_++;
 }
 
 void TextBuffer::setContInsert(bool state)
@@ -114,6 +148,7 @@ const std::string& TextBuffer::giveBuffer(Piece& piece) const
 }
 
 int TextBuffer::pieceCount() const { return static_cast<int>(pieces.size()); }
+int TextBuffer::totalSize() const { return totalSize_; }
 Piece TextBuffer::piece(size_t index) const 
 { 
     if(index < pieces.size()) return pieces.at(index);

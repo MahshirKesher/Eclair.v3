@@ -4,6 +4,20 @@
 #include <vector>
 #include "sharedTypes.hpp"
 
+enum Purpose
+{
+    INSERTION,
+    DELETION
+};
+
+enum EditStatus
+{
+    StartOfPiece = 150,
+    MidPiece,
+    EndOfPiece,
+    EndOfFile,
+};
+
 class TextBuffer
 {
     public:
@@ -15,7 +29,10 @@ class TextBuffer
         Location findPreviousRowStart(Location initLoc);
         
         Piece newPiece();
-        Status dividePiece(Location insertLoc);
+        EditStatus dividePiece(Location insertLoc, Purpose usedFor);
+        
+        Status deletion(Location insertLoc);
+        
         void edit(int input, Location insertionLoc);
         
         // SETTERS
@@ -25,6 +42,7 @@ class TextBuffer
         // GETTERS
         
         int pieceCount() const;
+        int totalSize() const;
         Piece piece(size_t index) const;
         
         const std::string original() const;
@@ -39,6 +57,8 @@ class TextBuffer
         std::string appended_;
         
         bool contInsert_;
+        
+        int totalSize_;
         
         std::vector<Piece> pieces;
 };
