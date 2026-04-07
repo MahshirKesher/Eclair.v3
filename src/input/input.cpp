@@ -14,6 +14,8 @@ int InputHandler::define(int input)
     {
         case CTRL_('q'):
             return QUIT;
+        case CTRL_('s'):
+            return SAVE;
         case '\x1b':
             if(terminal_.read(&input) == Success && input == '[') 
                 return defineSequence();

@@ -150,6 +150,15 @@ void Renderer::cursor()
     terminal_.write(buffer);
 }
 
+void Renderer::promptMessage(const std::string& message)
+{
+    std::string content = "\x1b[" + std::to_string(view_.rows()) + ";1H";
+    content += "\x1b[K";
+    content += message;
+    terminal_.write(content);
+    cursor();
+}
+
 std::string Renderer::row(size_t index)
 {
     if(index >= screenRows.size()) return "";

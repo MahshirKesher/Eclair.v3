@@ -18,10 +18,6 @@ EditorCore::EditorCore(std::string filename)
     render_.updateScreen();
     
     cursorOffset = 0;
-    
-    std::string test = "\x1b[" + std::to_string(view_.rows()) + ";1H\x1b[K";
-    test += std::to_string(cursorOffset);
-    terminal_.write(test);
 }
 
 void EditorCore::updateCursorOffset()
@@ -122,12 +118,12 @@ Status EditorCore::handleMovement(Movement input)
     }
     render_.statusBar();
     updateCursorOffset();
-    
+/*   
     Location currentLoc = text_.globalToLoc(cursorOffset);
     Piece currentPiece = text_.piece(currentLoc.pieceIndex);
     const std::string& buffer = text_.giveBuffer(currentPiece);
-    
-    std::string test = "\x1b[" + std::to_string(view_.rows()) + ";1H\x1b[K";
+   
+    std::string test;
     test += std::to_string(currentLoc.pieceIndex) + "." + std::to_string(currentLoc.inPieceOffset);
     test += " " + std::to_string(cursorOffset);
     test += " ";
@@ -135,10 +131,10 @@ Status EditorCore::handleMovement(Movement input)
     if (currentChar == '\n') test += "\\n";
     else test += currentChar;
     test += " " + std::to_string(text_.totalSize());
-    terminal_.write(test);
+    render_.promptMessage(test);
+*/
     render_.cursor();
-    text_.setContInsert(false);
-    
+    text_.setContInsert(false);  
     return Success;
 }
 
@@ -147,7 +143,8 @@ Status EditorCore::handleEdit(int input)
     if(input == DELETE_KEY) 
     {
         if(cursorOffset >= text_.totalSize()) return NoDeletionExecuted;
-        text_.deletion(text_.globalToLoc(cursorOffset));
+        Status edit = text_.deletion(text_.globalToLoc(cursorOffset));
+        if(edit == NewlineDeleted) file_.setFilerows(file_.filerows() - 1);
     }
     else if(input == BACKSPACE_KEY) 
     {
@@ -155,6 +152,7 @@ Status EditorCore::handleEdit(int input)
         Status edit = text_.deletion(text_.globalToLoc(--cursorOffset));
         if(edit == NewlineDeleted) 
         {
+            file_.setFilerows(file_.filerows() - 1);
             cursor_.setRow(cursor_.row() - 1);
             cursor_.setCol(render_.rowSize(cursor_.row() - view_.rowOffset()));
         }
@@ -175,6 +173,7 @@ Status EditorCore::handleEdit(int input)
         text_.edit(input, text_.globalToLoc(cursorOffset));
         if(input == '\n') 
         {
+            file_.setFilerows(file_.filerows() + 1);
             cursor_.setRow(cursor_.row() + 1);
             cursor_.setCol(0);
         }
@@ -186,6 +185,23 @@ Status EditorCore::handleEdit(int input)
     return Success;
 }
 
+Status EditorCore::saveChanges()
+{
+    file_.openForWrite();
+    int pieceCount = text_.pieceCount();
+    for(int i = 0; i < pieceCount; i++)
+    {
+        Piece currentPiece = text_.piece(i);
+        const std::string& buffer = text_.giveBuffer(currentPiece);
+        std::string chunk = buffer.substr(currentPiece.start, currentPiece.length);
+        file_.writeChunk(chunk);
+    }
+    file_.close();
+    std::string message = "Saved successfully. [" + std::to_string(text_.totalSize()) + " bytes]";
+    render_.promptMessage(message);
+    return Success;
+}
+
 Status EditorCore::processInput(int input)
 {
     switch(input)
@@ -193,6 +209,8 @@ Status EditorCore::processInput(int input)
         case QUIT:
             running = false;
             return Success;
+        case SAVE:
+            return saveChanges();
         case UP:
         case DOWN:
         case RIGHT:

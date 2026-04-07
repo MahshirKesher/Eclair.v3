@@ -126,6 +126,7 @@ void TextBuffer::edit(int input, Location insertLoc)
     if(contInsert())
     {
         pieces.at(std::max(0, insertLoc.pieceIndex - 1)).length++;
+        totalSize_++;
         return;
     }
     

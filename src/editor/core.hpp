@@ -23,6 +23,8 @@ class EditorCore
         Status handleMovement(Movement input);
         Status handleEdit(int input);
         
+        Status saveChanges();
+        
         void updateCursorOffset();
         
     private:
