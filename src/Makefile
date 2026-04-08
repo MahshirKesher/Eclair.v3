@@ -1,5 +1,5 @@
 CXX = g++
-CXXFLAGS = -Wall -Wextra -std=c++23
+CXXFLAGS = -Wall -Wextra -std=c++20
 INCLUDES = -I ./editor -I ./input -I ./output -I ./shared -I ./terminal
 
 SRC = \
