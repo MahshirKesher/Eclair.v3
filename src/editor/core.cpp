@@ -28,6 +28,8 @@ void EditorCore::updateCursorOffset()
 
 Status EditorCore::handleMovement(Movement input)
 { 
+    if(text_.pieceCount() == 0) return Success;
+
     int row = cursor_.row(), col = cursor_.col(), prefCol = cursor_.prefCol();
     int rowOffset = view_.rowOffset(), rows = view_.rows();
     
@@ -118,7 +120,7 @@ Status EditorCore::handleMovement(Movement input)
     }
     render_.statusBar();
     updateCursorOffset();
-/*   
+
     Location currentLoc = text_.globalToLoc(cursorOffset);
     Piece currentPiece = text_.piece(currentLoc.pieceIndex);
     const std::string& buffer = text_.giveBuffer(currentPiece);
@@ -132,7 +134,7 @@ Status EditorCore::handleMovement(Movement input)
     else test += currentChar;
     test += " " + std::to_string(text_.totalSize());
     render_.promptMessage(test);
-*/
+
     render_.cursor();
     text_.setContInsert(false);  
     return Success;
@@ -163,7 +165,7 @@ Status EditorCore::handleEdit(int input)
         int charsToTab = TAB_SIZE - (cursor_.col() % TAB_SIZE);
         for(int i = 0; i < charsToTab; i++)
         {
-            text_.edit(' ', text_.globalToLoc(cursorOffset));
+            text_.edit(' ', text_.globalToLoc(cursorOffset)); 
             cursorOffset++;
             cursor_.setCol(cursor_.col() + 1);
         }
@@ -185,8 +187,41 @@ Status EditorCore::handleEdit(int input)
     return Success;
 }
 
+Status EditorCore::setFilename()
+{
+    std::string newFilename = "";
+    Status status = Success;
+    char currentChar = '0';
+
+    while(currentChar != '\x1b')
+    {
+        status = terminal_.read(&currentChar);
+        render_.promptMessage("Save as: " + newFilename);
+        render_.cursor();
+        if(status != Success) continue;
+        currentChar = input_.define(currentChar);
+        if(currentChar == '\n')
+        {
+            if(newFilename.empty()) 
+            {
+                render_.promptMessage("Provide a filename.");
+                continue;
+            }
+            else
+            {
+                file_.setFilename(newFilename);
+                return Success;
+            }
+        }
+        else if(currentChar == BACKSPACE_KEY) newFilename.pop_back();
+        newFilename += currentChar;
+    }
+    return Success;
+}
+
 Status EditorCore::saveChanges()
 {
+    if(!file_.hasName()) setFilename();
     file_.openForWrite();
     int pieceCount = text_.pieceCount();
     for(int i = 0; i < pieceCount; i++)

@@ -23,6 +23,7 @@ class EditorCore
         Status handleMovement(Movement input);
         Status handleEdit(int input);
         
+        Status setFilename();
         Status saveChanges();
         
         void updateCursorOffset();

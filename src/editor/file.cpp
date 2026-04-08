@@ -14,6 +14,7 @@ std::string FileHandler::open(std::string filename)
     filename_ = filename;
 
     file_.open(filename, std::ios::in | std::ios::out | std::ios::binary);
+    if(!file_.is_open()) return "";
     file_.seekg(0, file_.end);
     int filesize = file_.tellg();
     file_.seekg(0, file_.beg);
@@ -55,5 +56,11 @@ void FileHandler::close()
     file_.close();
 }
 
+void FileHandler::setFilename(std::string newFilename) 
+{ 
+    filename_ = newFilename; 
+}
+
 int FileHandler::filerows() { return filerows_; }
 std::string FileHandler::filename() { return filename_; }
+bool FileHandler::hasName() { return filename_ != "blank"; }

@@ -122,6 +122,11 @@ Status TextBuffer::deletion(Location insertLoc)
 void TextBuffer::edit(int input, Location insertLoc)
 {
     appended_ += input;
+    if(pieceCount() == 0) 
+    {
+        pieces.push_back(newPiece());
+        return;
+    }
     
     if(contInsert())
     {

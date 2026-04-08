@@ -17,8 +17,11 @@ class FileHandler
         void writeChunk(const std::string& content);
         void close();
         
+        void setFilename(std::string newFilename);
+        
         int filerows();
         std::string filename();
+        bool hasName();
         
     private:
         int filerows_;

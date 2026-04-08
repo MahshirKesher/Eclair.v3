@@ -63,7 +63,7 @@ void Renderer::fillFrame()
     }
     Location start = view_.viewStart();
     std::string row; std::string frame;
-    int rowCount = view_.rowOffset();
+    int rowCount = view_.rowOffset() + 1;
     int pieceCount = text_.pieceCount();
     int frameEnd = view_.rowOffset() + view_.rows() - 2;
     frame += "\x1b[H\x1b[K";
@@ -107,7 +107,7 @@ void Renderer::fillFrame()
     else if(i < pieceCount - 1) rowStarts.push_back({i + 1, 0});
     else rowStarts.push_back({i, j});
     screenRows.push_back(row);
-    while(rowCount++ < frameEnd) frame += "\x1b[K~\n\r";
+    while(++rowCount <= frameEnd) frame += "\x1b[K~\n\r";
     terminal_.write(frame);
 }
 
@@ -156,7 +156,6 @@ void Renderer::promptMessage(const std::string& message)
     content += "\x1b[K";
     content += message;
     terminal_.write(content);
-    cursor();
 }
 
 std::string Renderer::row(size_t index)
